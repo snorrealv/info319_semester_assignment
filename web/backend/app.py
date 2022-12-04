@@ -45,24 +45,67 @@ def handle_message(data):
     # Send response:
     emit("data",{'data':data,'id':request.sid},broadcast=True)
 
+@socketio.on('query')
+def handle_message(data):
+    # Data reciever message, here deal with query parameters
+    print("data from the front end: ",str(data))
+    print(data)
+    # Send response:
+    emit("query",{'data':data,'id':request.sid},broadcast=True)
+
 @socketio.on("disconnect")
 def disconnected():
     """event listener when client disconnects to the server"""
     print("user disconnected")
     emit("disconnect",f"user {request.sid} disconnected",broadcast=True)
 
+@socketio.on('givedata')
+def handle_message(data):
+    data2 = {'data':[
+                    {
+                    'text':'#somebody',
+                    'count':5,
+                    'color':'green',
+                    },
+                    {
+                    'text':'#once',
+                    'count':4,
+                    'color':'green',
+                    },
+                    {
+                    'text':'#told me',
+                    'count':3,
+                    'color':'none',
+                    },
+                    {
+                    'text':'#the world',
+                    'count':3,
+                    'color':'none',
+                    },
+                    {
+                    'text':'#was gonna change me',
+                    'count':3,
+                    'color':'none',
+                    },
+                    {
+                    'text':'#HillaryForJerusalem',
+                    'count':3,
+                    'color':'none',
+                    },
+    ]}
+    emit("tweet_view_explicit_day", data2, broadcast=True)
 
-@socketio.on("tweet_view_explicit_day")
-def tweet_view_explicit_day():
-    # send dayview for explicit tweets
-    data = {data:['123', '142', '421', '124']}
-    emit("tweet_view_explicit_day", {'data':data,'id':request.sid}, broadcast=True)
+# @socketio.on("tweet_view_explicit_day")
+# def tweet_view_explicit_day():
+#     # send dayview for explicit tweets
+#     data = {data:['123', '142', '421', '124']}
+#     emit("tweet_view_explicit_day", {'data':jsonify(data),'id':request.sid}, broadcast=True)
 
-@socketio.on("tweet_view_impicit_day")
-def tweet_view_explicit_day():
-    # send dayview for explicit tweets
-    data = ['123', '142', '421', '124']
-    emit("tweet_view_implicit_day", {'data':data,'id':request.sid}, broadcast=True)
+# @socketio.on("tweet_view_impicit_day")
+# def tweet_view_explicit_day():
+#     # send dayview for explicit tweets
+#     data = ['123', '142', '421', '124']
+#     emit("tweet_view_implicit_day", {'data':data,'id':request.sid}, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True,port=5001)

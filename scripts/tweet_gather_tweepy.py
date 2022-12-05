@@ -8,8 +8,9 @@ from pathlib import Path
 import tweepy
 from dotenv import find_dotenv, load_dotenv
 from flatten_json import flatten
+from kafka import KafkaProducer, KafkaConsumer
 
-# from kafka import KafkaProducer
+
 
 
 
@@ -28,11 +29,12 @@ class TweetGatherer():
         
         self.bearer_token = os.environ.get("BEARER_TOKEN")
         self.client = tweepy.StreamingClient(bearer_token=self.bearer_token)
+
         self.client.on_data = self.on_data
         self.hashtags = hashtags
         self.rules = [
-            tweepy.StreamRule(value="has:images has:hashtags -is:retweet #football", tag="rulseset1", id=1),
-            tweepy.StreamRule(value="has:images has:hashtags -is:retweet #corn #maze", tag="rulseset1", id=2),
+            tweepy.StreamRule(value="has:media has:hashtags -is:retweet #football", tag="rulseset1", id=1),
+            tweepy.StreamRule(value="has:media has:hashtags -is:retweet #corn #music #corn #dog #ye", tag="rulseset2", id=2),
         ]
         
         self.NUM_TWEETS = 100  # how many tweets to harvest
@@ -76,7 +78,7 @@ class TweetGatherer():
         # update ruleset with all hastags:
         l = ' '.join(hashtags)
         self.rules = [
-            tweepy.StreamRule(value=f"has:images has:hashtags -is:retweet {l}", tag="rulseset1"),
+            tweepy.StreamRule(value=f"has:media has:hashtags -is:retweet {l}", tag="rulseset1"),
         ]
         print(self.rules)
         
@@ -95,21 +97,28 @@ class TweetGatherer():
             self.__on_finish()
 
         flattened = flatten(json_obj)
-        if 'data_attachments_media_keys_0' in flattened.keys():
-            print(json.dumps(json_obj, indent=4))
+        payload = json.dumps(flattened)
+        producer.send('tweets2', payload.encode())
+            
     def __on_finish(self):
         self.client.disconnect()
+       
 
         print('Stopped!')
         
     def run(self):
-        
-        self.client.filter()
-            
-tw = TweetGatherer()
+        self.client.filter(expansions=['attachments.media_keys'], media_fields=['media_key', 'type', 'preview_image_url','url'])
+
+
+HOST = 'localhost'
+producer = KafkaProducer(bootstrap_servers='localhost:9092')
+PORT = 65000
+tw = TweetGatherer(kafka=producer)
+tw.update_rules()
+tw.run()
 # print(tw.add_hashtags(['sdaf']))
 # print(rules)
 # tw.client.delete_rules()
 # tw.update_rules()
-tw.add_hashtags('new')
+# tw.add_hashtags('new')
 

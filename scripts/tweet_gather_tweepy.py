@@ -1,53 +1,53 @@
 import json
-import os
 import socket
 import sys
 import time
-from pathlib import Path
 
 import tweepy
-from dotenv import find_dotenv, load_dotenv
 from flatten_json import flatten
-from kafka import KafkaProducer, KafkaConsumer
-
-
-
+from kafka import KafkaConsumer, KafkaProducer
 
 
 class TweetGatherer():
-    def __init__(self, kafka=None, rel_env_path=None, abs_env_path=None, hashtags: list = None):
+    def __init__(self, port, ip, topic, bearer_token, hashtags=None):
 
         # ========================== setup ==========================
 
+    
+        self.ip = ip
+        self.port = port
+        self.topic = topic
+        
+        self.server = ip +':'+port 
+        
+        self.producer = KafkaProducer(bootstrap_servers=self.server)
+        
         self.env_path = None
-        if rel_env_path:
-            self.env_path = Path('../.env')    
-        elif abs_env_path:
-            self.env_path
-        load_dotenv(dotenv_path=self.env_path)
-        
-        
-        self.bearer_token = os.environ.get("BEARER_TOKEN")
+        self.bearer_token = bearer_token
         self.client = tweepy.StreamingClient(bearer_token=self.bearer_token)
 
         self.client.on_data = self.on_data
         self.hashtags = hashtags
         self.rules = [
-            tweepy.StreamRule(value="has:media has:hashtags -is:retweet #football", tag="rulseset1", id=1),
-            tweepy.StreamRule(value="has:media has:hashtags -is:retweet #corn #music #corn #dog #ye", tag="rulseset2", id=2),
+            tweepy.StreamRule(value="has:media has:hashtags -is:retweet (#corn OR #music OR #dog OR #ye OR #morning OR #kpop)", tag="rulseset1", id=2),
+            tweepy.StreamRule(value="has:media has:hashtags -is:retweet (#football OR #ye OR #usa OR #USA)", tag="rulseset2", id=1),
+
         ]
         
         self.NUM_TWEETS = 100  # how many tweets to harvest
         self.TWEET_COUNT = 0
 
-        self.kafka = kafka
-
     def add_rules(self, dry_run=False):
         # If running we need to grab whatever rules are already present.
+        print('added rules')
         if self.client.running:
-            pass
+            for rule in self.rules:
+                print('1')
+                self.client.add_rules(add=rule, dry_run = dry_run)
         elif not self.client.running:
-            self.client.add_rules(add=self.rules, dry_run = dry_run)
+            for rule in self.rules:
+                print('2')
+                self.client.add_rules(add=rule, dry_run = dry_run)
             return 1
         else:
             return 0
@@ -76,9 +76,9 @@ class TweetGatherer():
             hashtags.append(hashtag)
         
         # update ruleset with all hastags:
-        l = ' '.join(hashtags)
+        l = 'OR'.join(hashtags)
         self.rules = [
-            tweepy.StreamRule(value=f"has:media has:hashtags -is:retweet {l}", tag="rulseset1"),
+            tweepy.StreamRule(value=f"has:media has:hashtags -is:retweet ({l})", tag="rulseset1"),
         ]
         print(self.rules)
         
@@ -98,27 +98,12 @@ class TweetGatherer():
 
         flattened = flatten(json_obj)
         payload = json.dumps(flattened)
-        producer.send('tweets2', payload.encode())
+        self.producer.send(self.topic, payload.encode())
             
     def __on_finish(self):
         self.client.disconnect()
-       
-
         print('Stopped!')
         
     def run(self):
         self.client.filter(expansions=['attachments.media_keys'], media_fields=['media_key', 'type', 'preview_image_url','url'])
-
-
-HOST = 'localhost'
-producer = KafkaProducer(bootstrap_servers='localhost:9092')
-PORT = 65000
-tw = TweetGatherer(kafka=producer)
-tw.update_rules()
-tw.run()
-# print(tw.add_hashtags(['sdaf']))
-# print(rules)
-# tw.client.delete_rules()
-# tw.update_rules()
-# tw.add_hashtags('new')
 

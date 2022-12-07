@@ -26,7 +26,7 @@ export default function TweetViewer({ socket, topic, scope }) {
     }
     console.log('changed')
     
-    socket.on(`tweet_view_explicit_day`, (data2) => {
+    socket.on(`tweets`, (data2) => {
       setMessages({data: data2.data});
       setButtonStatus(false);
     });

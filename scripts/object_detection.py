@@ -54,14 +54,14 @@ class HashtagExtractor:
             json_obj = json.loads(msg.value.decode())
             try:
                 # get implicit hashtags
-                implicit_hashtags = self.find_hastags(json_obj['includes_media_0_url'])
+                implicit_hashtags = self.find_hastags(json_obj['medium']['url'])
                 
                 # find explicit hashtags form tweet:
-                text = json_obj['data_text']
-                explicit_hashtags = [ t for t in text.split() if t.startswith('#') ]
+                #text = json_obj['data_text']
+                #explicit_hashtags = [ t for t in text.split() if t.startswith('#') ]
                 
                 # Create payload
-                tweet_id = json_obj['data_id']                
+                tweet_id = json_obj['tweet_id']                
                 
                 # send implicit
                 for entry in implicit_hashtags.keys():
@@ -72,12 +72,12 @@ class HashtagExtractor:
                     self.producer.send(self.producer_topic_implicit, json_bytes)
                 
                 # send explicit
-                for entry in explicit_hashtags:
+                # for entry in explicit_hashtags:
                     
-                    data = {'tweet_id':tweet_id, 'hashtag_e':entry}
-                    json_str = json.dumps(data)
-                    json_bytes = json_str.encode()
-                    self.producer.send(self.producer_topic_explicit, json_bytes)
+                #     data = {'tweet_id':tweet_id, 'hashtag_e':entry}
+                #     json_str = json.dumps(data)
+                #     json_bytes = json_str.encode()
+                #     self.producer.send(self.producer_topic_explicit, json_bytes)
             except Exception as e:
                 print(e)
 

@@ -31,8 +31,6 @@ def tweet_gather():
 
 
 if __name__ == '__main__':
-    
-    
     tweet = multiprocessing.Process(name='tweet', target=tweet_gather)
     hash_e = multiprocessing.Process(name='hash_e', target=hash_extract)
     tweet.start()

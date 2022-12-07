@@ -56,7 +56,10 @@ class HashtagExtractor:
                 #{'tweet_id': '1600486147905519623', 'medium': '{"media_key":"3_1600486124765544449","type":"photo","url":"https://pbs.twimg.com/media/FjYRppaXgAEYiRu.jpg"}'}
                 # get implicit hashtags
                 q = json.loads(json_obj['medium'])
-                implicit_hashtags = self.find_hastags(q['url'])
+                if q['url']:
+                    implicit_hashtags = self.find_hastags(q['url'])
+                else:
+                    pass
                 
                 # find explicit hashtags form tweet:
                 #text = json_obj['data_text']

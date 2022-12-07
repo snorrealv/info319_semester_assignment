@@ -70,7 +70,7 @@ class TweetGatherer():
                     
         # add new hastags:
         if type(hashtag) is list: 
-            for tag in hastag:
+            for tag in hashtag:
                 hashtags.append(tag)
         else:
             hashtags.append(hashtag)

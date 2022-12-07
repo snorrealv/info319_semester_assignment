@@ -53,8 +53,10 @@ class HashtagExtractor:
         for msg in self.consumer:
             json_obj = json.loads(msg.value.decode())
             try:
+                #{'tweet_id': '1600486147905519623', 'medium': '{"media_key":"3_1600486124765544449","type":"photo","url":"https://pbs.twimg.com/media/FjYRppaXgAEYiRu.jpg"}'}
                 # get implicit hashtags
-                implicit_hashtags = self.find_hastags(json_obj['medium']['url'])
+                q = json.loads(json_obj['medium'])
+                implicit_hashtags = self.find_hastags(q['url'])
                 
                 # find explicit hashtags form tweet:
                 #text = json_obj['data_text']
@@ -82,4 +84,4 @@ class HashtagExtractor:
                 print(e)
 
 
-{"implicit_hashtags": {"#Chihuahua": "10.308017", "#Italian": "5.9688463", "#greyhound": "5.9688463", "#bath": "5.8421626", "#towel": "5.8421626", "#miniature": "5.6929255", "#pinscher": "5.6929255", "#Staffordshire": "5.6562214", "#bullterrier": "5.6562214", "#bull": "5.6562214", "#terrier": "5.6562214"}, "tweet_id": "1600116942580305921", "explicit_hashtags": ["#dog", "#ScoobySays", "#HelptheHomeless", "#CharityTuesday", "#BuyABeanie", "#GiveBack"]}
+#{"implicit_hashtags": {"#Chihuahua": "10.308017", "#Italian": "5.9688463", "#greyhound": "5.9688463", "#bath": "5.8421626", "#towel": "5.8421626", "#miniature": "5.6929255", "#pinscher": "5.6929255", "#Staffordshire": "5.6562214", "#bullterrier": "5.6562214", "#bull": "5.6562214", "#terrier": "5.6562214"}, "tweet_id": "1600116942580305921", "explicit_hashtags": ["#dog", "#ScoobySays", "#HelptheHomeless", "#CharityTuesday", "#BuyABeanie", "#GiveBack"]}
